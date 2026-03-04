@@ -5,6 +5,7 @@ from code.Const import *
 class Menu:
     """
     Tela inicial do jogo com seleção de dificuldade.
+    Exibe título, melhores tempos, botões de dificuldade e comandos de controle.
     """
 
     def __init__(self, screen):
@@ -45,11 +46,7 @@ class Menu:
 
         # Desenha botões
         for name, rect in self.buttons.items():
-            color = (
-                BUTTON_HOVER_COLOR
-                if rect.collidepoint(mouse_pos)
-                else BUTTON_COLOR
-            )
+            color = BUTTON_HOVER_COLOR if rect.collidepoint(mouse_pos) else BUTTON_COLOR
 
             pygame.draw.rect(
                 self.screen,
@@ -77,6 +74,10 @@ class Menu:
             best_text,
             (WIDTH // 2 - best_text.get_width() // 2, 250)
         )
+
+        # Comandos de controle
+        jump_text = self.small_font.render("Space - Saltar", True, WHITE)
+        self.screen.blit(jump_text, (20, HEIGHT - 80))
 
         pygame.display.update()
 
