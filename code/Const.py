@@ -27,8 +27,18 @@ CLICK_SOUND = "assets/GameStart.ogg"
 # =========================
 # JOGO
 # =========================
+# Camadas do fundo com efeito de paralaxe
+LAYERS = [
+    ("assets/sky.png", 0.1),
+    ("assets/jungle_bg.png", 0.2),
+    ("assets/trees_bushes.png", 0.5),
+    ("assets/lianas.png", 0.6),
+    ("assets/grasses.png", 1.0),
+    ("assets/fireflys.png", 0.7),
+    ("assets/grass_road.png", 1.0),
+    ("assets/trees_face.png", 1.0),
+]
 
-GAME_BG = "assets/BackgroundGame.png"
 GAME_MUSIC = "assets/Music_Game.wav"
 JUMP_SOUND = "assets/Jump.wav"
 GAME_OVER_SOUND = "assets/GameOver.wav"
@@ -47,7 +57,7 @@ GROUND_Y = HEIGHT - 120
 # =========================
 
 GRAVITY = 0.8
-JUMP_VELOCITY = -22
+JUMP_VELOCITY = -24
 
 # =========================
 # DIFICULDADE
@@ -55,18 +65,18 @@ JUMP_VELOCITY = -22
 
 DIFFICULTIES = {
     "facil": {
-        "initial_speed": 5,
-        "speed_increment": 0.5,
-        "obstacle_interval": 1800
+        "initial_speed": 7,
+        "speed_increment": 1.0,
+        "obstacle_interval": 1300
     },
     "dificil": {
-        "initial_speed": 6,
-        "speed_increment": 0.7,
-        "obstacle_interval": 1500
+        "initial_speed": 9,
+        "speed_increment": 1.1,
+        "obstacle_interval": 1200
     },
     "impossivel": {
-        "initial_speed": 8,
-        "speed_increment": 1.0,
-        "obstacle_interval": 1000
+        "initial_speed": 12,
+        "speed_increment": 1.3,
+        "obstacle_interval": 900
     }
 }

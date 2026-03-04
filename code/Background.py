@@ -1,28 +1,48 @@
 import pygame
 
-
 class Background:
     """
-    Controla o fundo com efeito de rolagem infinita.
+    Fundo com rolagem infinita e efeito de paralaxe.
+    Camadas que devem se mover juntas podem ter o mesmo speed_factor.
     """
 
-    def __init__(self, image_path, width, height):
-        # Carrega e redimensiona a imagem
-        self.image = pygame.image.load(image_path).convert()
-        self.image = pygame.transform.scale(self.image, (width, height))
-
+    def __init__(self, layers, width, height):
+        """
+        layers: lista de tuplas (caminho_imagem, speed_factor)
+        width, height: tamanho da tela
+        """
         self.width = width
-        self.x = 0  # Posição horizontal do fundo
+        self.height = height
+        self.layers = []
 
-    def update(self, speed):
-        # Move o fundo para a esquerda
-        self.x -= speed
+        for path, speed_factor in layers:
+            try:
+                img = pygame.image.load(path).convert_alpha()
+            except FileNotFoundError:
+                print(f"[Warning] Arquivo não encontrado: {path}")
+                continue
+            img = pygame.transform.scale(img, (width, height))
+            self.layers.append({
+                "image": img,
+                "x": 0.0,
+                "speed_factor": speed_factor
+            })
 
-        # Reinicia posição para criar efeito infinito
-        if self.x <= -self.width:
-            self.x = 0
+    def update(self, base_speed):
+        """
+        Atualiza posição de cada camada.
+        base_speed: velocidade base do jogo
+        """
+        for layer in self.layers:
+            layer["x"] -= base_speed * layer["speed_factor"]
+            if layer["x"] <= -self.width:
+                layer["x"] += self.width  # loop infinito suave
 
     def draw(self, screen):
-        # Desenha duas imagens lado a lado para criar loop infinito
-        screen.blit(self.image, (self.x, 0))
-        screen.blit(self.image, (self.x + self.width, 0))
+        """
+        Desenha todas as camadas na tela, lado a lado para efeito infinito
+        """
+        for layer in self.layers:
+            x = int(layer["x"])
+            screen.blit(layer["image"], (x, 0))
+            screen.blit(layer["image"], (x + self.width, 0))

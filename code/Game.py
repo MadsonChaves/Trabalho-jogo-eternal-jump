@@ -2,6 +2,7 @@ import pygame
 import random
 from code.Menu import Menu
 from code.Const import *
+from code.Const import LAYERS  # import correto
 from code.Player import Player
 from code.Obstacle import Obstacle
 from code.Background import Background
@@ -29,8 +30,8 @@ class Game:
         # Menu
         self.menu = Menu(self.screen)
 
-        # Background
-        self.background = Background(GAME_BG, WIDTH, HEIGHT)
+        # Background com paralaxe
+        self.background = Background(LAYERS, WIDTH, HEIGHT)
 
         # Player
         self.player = Player(150, GROUND_Y)
@@ -44,8 +45,7 @@ class Game:
         self.start_time = 0
         self.score = 0
 
-        # Velocidade
-
+        # Velocidade inicial
         self.speed = DIFFICULTIES[self.difficulty]["initial_speed"]
 
         # Sons
@@ -112,7 +112,7 @@ class Game:
 
             if self.state == "menu":
                 action = self.menu.check_click(event)
-                if action:  # agora retorna a dificuldade
+                if action:
                     self.start_game(action)
 
             elif self.state == "play":
@@ -133,7 +133,7 @@ class Game:
         # Velocidade aumenta com o tempo
         self.speed = config["initial_speed"] + (self.score * 0.02 * config["speed_increment"])
 
-        # Atualiza fundo
+        # Atualiza fundo com paralaxe
         self.background.update(self.speed)
 
         # Atualiza player
