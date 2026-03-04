@@ -1,9 +1,11 @@
 import pygame
 import random
-from code.menu import Menu
-from code.const import *
-from code.player import Player
-from code.obstacle import Obstacle
+from code.Menu import Menu
+from code.Const import *
+from code.Player import Player
+from code.Obstacle import Obstacle
+from code.Background import Background
+
 
 class Game:
     def __init__(self):
@@ -16,43 +18,47 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
 
-        # Menu
-        self.menu = Menu(self.screen)
+        # Fonte do score
+        self.font = pygame.font.SysFont("arial", 30)
+
+        # Estado
         self.state = "menu"
         self.best_score = 0
+        self.difficulty = "dificil"
 
-        # Fundo
-        self.bg = pygame.image.load(GAME_BG).convert()
-        self.bg = pygame.transform.scale(self.bg, (WIDTH, HEIGHT))
-        self.bg_x = 0
+        # Menu
+        self.menu = Menu(self.screen)
+
+        # Background
+        self.background = Background(GAME_BG, WIDTH, HEIGHT)
 
         # Player
         self.player = Player(150, GROUND_Y)
         self.obstacles = []
 
-        # Spawn de obstáculos
+        # Spawn
         self.last_obstacle_time = pygame.time.get_ticks()
-        self.next_obstacle_delay = random.randint(1200, 2000)
+        self.next_obstacle_delay = 1500
 
-        # Score por tempo
+        # Score
         self.start_time = 0
         self.score = 0
 
         # Velocidade
-        self.base_speed = INITIAL_SPEED
-        self.speed = INITIAL_SPEED
+
+        self.speed = DIFFICULTIES[self.difficulty]["initial_speed"]
 
         # Sons
         self.menu_music = pygame.mixer.Sound(MENU_MUSIC)
         self.menu_music.set_volume(0.5)
+
         self.game_music = pygame.mixer.Sound(GAME_MUSIC)
         self.game_music.set_volume(0.5)
+
         self.game_over_sound = pygame.mixer.Sound(GAME_OVER_SOUND)
         self.game_over_sound.set_volume(0.5)
-        self.jump_sound = pygame.mixer.Sound(JUMP_SOUND)
-        self.jump_sound.set_volume(0.5)
 
-        # Começa com música do menu
+        # Música inicial
         self.menu_music.play(-1)
 
     def run(self):
@@ -61,12 +67,15 @@ class Game:
             self.events()
             self.update()
             self.draw()
+
         pygame.quit()
 
-    def start_game(self):
+    def start_game(self, difficulty):
+        self.difficulty = difficulty
+        config = DIFFICULTIES[self.difficulty]
+
         self.state = "play"
 
-        # Para todas as músicas
         self.menu_music.stop()
         self.game_music.stop()
         self.game_over_sound.stop()
@@ -76,12 +85,12 @@ class Game:
 
         self.start_time = pygame.time.get_ticks()
         self.score = 0
-        self.speed = self.base_speed
 
+        # Configuração baseada na dificuldade
+        self.speed = config["initial_speed"]
+        self.next_obstacle_delay = config["obstacle_interval"]
         self.last_obstacle_time = pygame.time.get_ticks()
-        self.next_obstacle_delay = random.randint(1200, 2000)
 
-        # Toca música do jogo
         self.game_music.play(-1)
 
     def game_over(self):
@@ -93,7 +102,6 @@ class Game:
 
         self.state = "menu"
 
-        # Volta música do menu
         self.menu_music.stop()
         self.menu_music.play(-1)
 
@@ -104,42 +112,41 @@ class Game:
 
             if self.state == "menu":
                 action = self.menu.check_click(event)
-                if action == "play":
-                    self.start_game()
+                if action:  # agora retorna a dificuldade
+                    self.start_game(action)
 
             elif self.state == "play":
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         self.player.jump()
-                        self.jump_sound.play()
 
     def update(self):
         if self.state != "play":
             return
 
         current_time = pygame.time.get_ticks()
+        config = DIFFICULTIES[self.difficulty]
 
-        # Score por tempo
+        # Score
         self.score = (current_time - self.start_time) // 100
 
         # Velocidade aumenta com o tempo
-        self.speed = self.base_speed + (self.score * 0.02)
+        self.speed = config["initial_speed"] + (self.score * 0.02 * config["speed_increment"])
 
-        # Fundo em movimento
-        self.bg_x -= self.speed
-        if self.bg_x <= -WIDTH:
-            self.bg_x = 0
+        # Atualiza fundo
+        self.background.update(self.speed)
 
+        # Atualiza player
         self.player.update()
 
-        # Spawn obstáculos inteligente
+        # Spawn obstáculos baseado na dificuldade
         if current_time - self.last_obstacle_time > self.next_obstacle_delay:
             if not self.obstacles or self.obstacles[-1].rect.x < WIDTH - 450:
                 self.obstacles.append(Obstacle(WIDTH, GROUND_Y))
                 self.last_obstacle_time = current_time
-                self.next_obstacle_delay = random.randint(1200, 2000)
+                self.next_obstacle_delay = config["obstacle_interval"]
 
-        # Atualiza obstáculos e checa colisão
+        # Atualiza obstáculos
         for obstacle in self.obstacles[:]:
             obstacle.update(self.speed)
 
@@ -155,9 +162,8 @@ class Game:
             self.menu.draw()
             return
 
-        # Fundo infinito
-        self.screen.blit(self.bg, (self.bg_x, 0))
-        self.screen.blit(self.bg, (self.bg_x + WIDTH, 0))
+        # Fundo
+        self.background.draw(self.screen)
 
         # Player
         self.player.draw(self.screen)
@@ -167,8 +173,8 @@ class Game:
             obstacle.draw(self.screen)
 
         # Score
-        font = pygame.font.SysFont("arial", 30)
-        score_text = font.render(f"Score: {self.score}", True, WHITE)
+        score_text = self.font.render(f"Score: {self.score}", True, WHITE)
+        diff_text = self.font.render(f"Modo: {self.difficulty}", True, WHITE)
         self.screen.blit(score_text, (20, 20))
-
+        self.screen.blit(diff_text, (20, 55))
         pygame.display.update()
